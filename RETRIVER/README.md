@@ -1,4 +1,4 @@
-# Pollard's kangaroo for SECPK1
+# HYBRID BSGS + Kangaroo
 
 A Pollard's kangaroo interval ECDLP solver for SECP256K1 (based on VanitySearch engine).\
 **This program is limited to a 256 bits interval search.**
