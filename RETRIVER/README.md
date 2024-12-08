@@ -13,3 +13,4 @@ If none of these 2 start options are given, then random start in 256 bit is take
 
 These -st,-en options are complementary to -rb,-seq. both can not be used together.
 The idea is that input Pubkey file must have only public keys, nothing else.
+
