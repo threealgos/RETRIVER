@@ -1,0 +1,67 @@
+void Kangaroo::CreateHerd(int nbKangaroo, Int *px, Int *py, Int *d, int firstType, bool lock) {
+
+    vector<Int> pk;
+    vector<Point> S;
+    vector<Point> Sp;
+    pk.reserve(nbKangaroo);
+    S.reserve(nbKangaroo);
+    Sp.reserve(nbKangaroo);
+    Point Z;
+    Z.Clear();
+
+    // Choose random starting distance
+    if (lock) LOCK(ghMutex);
+
+    for (uint64_t j = 0; j < nbKangaroo; j++) {
+
+#ifdef USE_SYMMETRY
+        // Tame in [0..N/2]
+        d[j].Rand(rangePower - 1);
+        if ((j + firstType) % 2 == WILD) {
+            d[j].ModSubK1order(&rangeWidthDiv4); // Wild in [-N/4..N/4]
+        }
+#else
+        // Tame in [0..N]
+        d[j].Rand(rangePower);
+
+        // Handle all WILD types up to WILD50
+        int typeIndex = (j + firstType) % 52; // Supports up to 50 wild types + TAME and WILD
+        if (typeIndex == WILD) {
+            d[j].ModSubK1order(&rangeWidthDiv2); // Original WILD [-N/2..N/2]
+        } else if (typeIndex >= WILD2 && typeIndex <= WILD50) {
+            Int wildRange = rangeWidthDiv2; // Base range for WILD
+            wildRange.ModMul(&Int(typeIndex - WILD + 1)); // Scale range for each wild type
+            d[j].ModSubK1order(&wildRange);
+        }
+#endif
+
+        pk.push_back(d[j]);
+    }
+
+    if (lock) UNLOCK(ghMutex);
+
+    // Compute starting positions
+    S = secp->ComputePublicKeys(pk);
+
+    for (uint64_t j = 0; j < nbKangaroo; j++) {
+        int typeIndex = (j + firstType) % 52; // Supports WILD types up to WILD50
+        if (typeIndex == TAME) {
+            Sp.push_back(Z);
+        } else {
+            Sp.push_back(keyToSearch);
+        }
+    }
+
+    S = secp->AddDirect(Sp, S);
+
+    for (uint64_t j = 0; j < nbKangaroo; j++) {
+        px[j].Set(&S[j].x);
+        py[j].Set(&S[j].y);
+
+#ifdef USE_SYMMETRY
+        // Equivalence symmetry class switch
+        if (py[j].ModPositiveK1())
+            d[j].ModNegK1order();
+#endif
+    }
+}

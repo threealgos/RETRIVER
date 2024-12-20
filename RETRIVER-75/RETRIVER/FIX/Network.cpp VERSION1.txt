@@ -1,0 +1,22 @@
+if (kType >= WILD && kType <= WILD50) {
+    P = secp->AddDirect(keyToSearch, P);
+
+    uint32_t hC = P.x.bits64[2] & HASH_MASK;
+    bool ok = (hC == h) && (P.x.bits64[0] == dp[i].x.i64[0]) && (P.x.bits64[1] == dp[i].x.i64[1]);
+
+    if (!ok) {
+        if (kType >= TAME && kType <= TAME50) {
+            ::printf("\nWrong TAME point from: %s [dp=%d PID=%u thId=%u gpuId=%u]\n",
+                     p->clientInfo, i, head.processId, head.threadId, head.gpuId);
+        } else {
+            ::printf("\nWrong WILD point from: %s [dp=%d PID=%u thId=%u gpuId=%u]\n",
+                     p->clientInfo, i, head.processId, head.threadId, head.gpuId);
+        }
+
+        // Debugging details
+        ::printf("X=%s\n", P.x.GetBase16().c_str());
+        ::printf("D=%08X%08X%08X%08X\n", dp[i].d.i32[3], dp[i].d.i32[2], dp[i].d.i32[1], dp[i].d.i32[0]);
+        free(dp);
+        CLIENT_ABORT();
+    }
+}

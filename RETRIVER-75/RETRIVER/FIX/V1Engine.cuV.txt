@@ -1,0 +1,16 @@
+// Distance
+Int dOff;
+dOff.Set(&d[idx]);
+
+// Handle offsets based on the type (TAME/WILD/WILDx)
+if (idx % 2 >= WILD && idx % 2 <= WILD50) {
+    dOff.ModAddK1order(&wildOffset[idx % 2 - WILD]); // Adjust wildOffset for the specific WILD type
+}
+
+inputKangarooPinned[g * strideSize + t + 8 * nbThreadPerGroup] = dOff.bits64[0];
+inputKangarooPinned[g * strideSize + t + 9 * nbThreadPerGroup] = dOff.bits64[1];
+
+#ifdef USE_SYMMETRY
+// Last jump
+inputKangarooPinned[t + 10 * nbThreadPerGroup] = (uint64_t)NB_JUMP;
+#endif
